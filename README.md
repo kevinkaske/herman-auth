@@ -13,7 +13,7 @@ file with the following contents:
 {
 	"minimum-stability": "dev",
 	"require": {
-		"kevinkaske/herman": "dev-master"
+		"kevinkaske/herman-auth": "dev-master"
 	}
 }
 ```
