@@ -26,7 +26,7 @@ You will now need to run your migrations to setup the DB tables for Herman. You 
 the command line to run this migration.
 
 ###Integrate with Pooch
-Now that we have installed the Herman Auth library and has setup the database tables, we need to USE this library to restrict access.
+Now that we have installed the Herman Auth library and setup the database tables, we need to use this library to restrict access.
 
 Change your ApplicationController to look like the following:
 ```php
@@ -39,7 +39,6 @@ class ApplicationController extends Controller{
 
 		$this->auth = new HermanAuth();
 
-		//Put in code that should be run in every request here
 		if($controller != 'login'){
 			$this->auth->membersOnly();
 		}
@@ -62,3 +61,20 @@ class ApplicationController extends Controller{
 }
 ?>
 ```
+The `__construct` method is called each time a request comes in. We are simply creating a new instance of
+HermanAuth and picking what rules we want to apply to restrict access. We are applying the following logic:
+```php
+if($controller != 'login'){
+	$this->auth->membersOnly();
+}
+```
+With this we are checking the current controller this request is being routed to. Our login controller is the controller we use to create
+sessions so we will want to give that controller a pass and require a session for every other controller. You could reverse this logic if
+you want to explicitly list all controllers that you want to limit access to. For example:
+```php
+if($controller == 'restricted' || $controller == 'members'){
+	$this->auth->membersOnly();
+}
+```
+The last piece of this is just loading the currently logged in user and account and making is available via
+`$this->application_data['current_account']`  and `$this->application_data['current_user']`.
