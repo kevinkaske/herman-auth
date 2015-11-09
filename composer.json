@@ -1,0 +1,19 @@
+{
+	"name": "kevinkaske/herman",
+	"description": "A simple authentication lib for Pooch",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Kevin Kaske",
+			"email": "kevinkaske@gmail.com"
+		}
+	],
+	"require": {
+		"kevinkaske/pooch": "dev-master"
+	},
+	"autoload": {
+		"files": [
+			"libs/HermanAuth.php"
+		]
+	}
+}
