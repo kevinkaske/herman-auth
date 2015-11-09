@@ -2,7 +2,7 @@
 A simple authentication lib for [Pooch](http://www.poochhq.com)
 
 ##About
-Herman is a drop in authentication Lib for Pooch. It's simple. It gives you a users table and an accounts table as well as functions for
+Herman is a drop in authentication Lib for Pooch (Could be used without pooch too... Not sure why you would want to though). It's simple. It gives you a users table and an accounts table as well as functions for
 authenticating users.
 
 ##Installation
