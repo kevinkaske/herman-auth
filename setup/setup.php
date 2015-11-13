@@ -6,7 +6,7 @@ print getGreenColoredString("88OOO88 88OOOOO 88`8b   88  88  88 88OOO88 88 V8o88
 print getGreenColoredString("88   88 88.     88 `88. 88  88  88 88   88 88  V888\n");
 print getGreenColoredString("YP   YP Y88888P 88   YD YP  YP  YP YP   YP VP   V8P\n");
 print "\n";
-print getCyanColoredString("Making migration files...");
+print getCyanColoredString("Copying migration files...");
 
 $projectPath = realpath(__DIR__ . '/../../../../');
 recurse_copy(realpath(__DIR__ . '/base/'),$projectPath);
