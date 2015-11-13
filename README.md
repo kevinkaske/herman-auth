@@ -20,7 +20,7 @@ file with the following contents:
 
 Then run `composer install`. Composer will then install the dependent libraries.
 
-Now we need to setup the project. Run the following command `php vendor/kevinkaske/herman/setup.php`.
+Now we need to setup the project. Run the following command `php vendor/kevinkaske/herman/setup/setup.php`.
 
 You will now need to run your migrations to setup the DB tables for Herman. You can do that by running `php vendor/bin/phinx migrate` from
 the command line to run this migration.
