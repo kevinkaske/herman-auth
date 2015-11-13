@@ -11,7 +11,8 @@ print getCyanColoredString("Making migration files...");
 $projectPath = realpath(__DIR__ . '/../../../../');
 recurse_copy(realpath(__DIR__ . '/base/'),$projectPath);
 
-//$timeStr = date("YmdHi", time());
+date_default_timezone_set('America/Chicago');
+$timeStr = date("YmdHi", time());
 
 rename($projectPath . "migrations/create_users.php", $projectPath . "migrations/" . $timeStr . "01_create_users.php");
 rename($projectPath . "migrations/create_accounts.php", $projectPath . "migrations/" . $timeStr . "02_create_accounts.php");
