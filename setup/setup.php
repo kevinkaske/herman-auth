@@ -22,7 +22,7 @@ print getCyanColoredString("Finished!\n\n");
 
 print "\n";
 print getPurpleColoredString("Remember to put the following path in your routes file:\n");
-print getPurpleColoredString("$config['routes'] = array(");
+print getPurpleColoredString("\$config['routes'] = array(");
 print getPurpleColoredString("  array('/login','sessions', 'login')");
 print getPurpleColoredString(");\n");
 print "\n";
