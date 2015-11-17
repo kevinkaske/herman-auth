@@ -6,7 +6,7 @@ print getGreenColoredString("88OOO88 88OOOOO 88`8b   88  88  88 88OOO88 88 V8o88
 print getGreenColoredString("88   88 88.     88 `88. 88  88  88 88   88 88  V888\n");
 print getGreenColoredString("YP   YP Y88888P 88   YD YP  YP  YP YP   YP VP   V8P\n");
 print "\n";
-print getCyanColoredString("Copying migration files...");
+print getCyanColoredString("Copying migration files...\n");
 
 $projectPath = realpath(__DIR__ . '/../../../../');
 recurse_copy(realpath(__DIR__ . '/base/'),$projectPath);
@@ -19,6 +19,14 @@ rename($projectPath . "/migrations/create_accounts.php", $projectPath . "/migrat
 rename($projectPath . "/migrations/create_failed_logins.php", $projectPath . "/migrations/" . $timeStr . "03_create_failed_logins.php");
 
 print getCyanColoredString("Finished!\n\n");
+
+print "\n";
+print getPurpleColoredString("Remember to put the following path in your routes file:\n");
+print getPurpleColoredString("$config['routes'] = array(");
+print getPurpleColoredString("  array('/login','sessions', 'login')");
+print getPurpleColoredString(");\n");
+print "\n";
+print getCyanColoredString("Have a nice day!\n\n");
 
 function getCyanColoredString($string) {
 	return getColoredString($string, '0;36');
