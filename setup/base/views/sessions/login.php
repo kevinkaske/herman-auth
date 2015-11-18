@@ -10,7 +10,7 @@
   <div class="form-group clearfix">
     <div class="pull-left">
       <label class="checkbox-inline">
-        <input type="checkbox" tabindex="3">Remember me
+        <input type="checkbox" name="remember" tabindex="3">Remember me
       </label>
     </div>
     <div class="pull-right">
