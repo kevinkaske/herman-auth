@@ -1,7 +1,7 @@
 <?
 class SessionsController extends ApplicationController{
   function login(){
-		$this->layout = 'login';
+    //Show Login Page
 	}
 
 	function process(){
