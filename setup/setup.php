@@ -49,7 +49,7 @@ print getGreenColoredString("	}\n");
 print getGreenColoredString("\n");
 print getGreenColoredString("	function getCurrentUser(){\n");
 print getGreenColoredString("		\$this->db->where('id', \$_SESSION['user_id']);\n");
-print getGreenColoredString("		\$this->addToApplicationData('current_user', \$this->db->getOne("users"));\n");
+print getGreenColoredString("		\$this->addToApplicationData('current_user', \$this->db->getOne('users'));\n");
 print getGreenColoredString("	}\n");
 print getGreenColoredString("\n");
 print getGreenColoredString("	function getCurrentAccount(){\n");
