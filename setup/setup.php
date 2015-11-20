@@ -22,7 +22,7 @@ rename($projectPath . "/migrations/create_failed_logins.php", $projectPath . "/m
 print getCyanColoredString(" Finished!\n");
 
 print "\n";
-print getPurpleColoredString("Put the following path in your routes file:\n");
+print getPurpleColoredString("Put the following paths in your routes file:\n");
 print getGreenColoredString("\$config['routes'] = array(\n");
 print getGreenColoredString("  array('/login','sessions', 'login'),\n");
 print getGreenColoredString("  array('/logout','sessions', 'logout')\n");
