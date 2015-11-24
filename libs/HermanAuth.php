@@ -73,7 +73,7 @@ Class HermanAuth {
 		}
 	}
 
-	public function logUserIn($email, $password){
+	public function logUserIn($email, $password, $remember=false){
 		global $config;
 
 		try{
@@ -105,6 +105,11 @@ Class HermanAuth {
 			}
 
 			$this->validateUser($userData['email']);
+
+			if($remember){
+				$params = session_get_cookie_params();
+				setcookie(session_name(), $_COOKIE[session_name()], time() + 60*60*24*30, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+			}
 
 			header('Location: '.$config['address']);
 		}catch (MyException $e){
