@@ -5,7 +5,13 @@
 //-----------------------------------------------------------------------------------
 // Login / Authentication Functions
 //-----------------------------------------------------------------------------------
-session_start();
+if(isset($config['herman_start_session']) && !$config['herman_start_session'])){
+	//do nothing... Config says to not start the session
+}else{
+	//else default to starting the session
+	session_start();
+}
+
 Class HermanAuth {
 	public $db;
 
