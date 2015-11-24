@@ -5,7 +5,7 @@
 //-----------------------------------------------------------------------------------
 // Login / Authentication Functions
 //-----------------------------------------------------------------------------------
-if(isset($config['herman_start_session']) && !$config['herman_start_session'])){
+if(isset($config['herman_start_session']) && !$config['herman_start_session']){
 	//do nothing... Config says to not start the session
 }else{
 	//else default to starting the session
