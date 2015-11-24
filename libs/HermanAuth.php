@@ -5,13 +5,6 @@
 //-----------------------------------------------------------------------------------
 // Login / Authentication Functions
 //-----------------------------------------------------------------------------------
-if(isset($config['herman_start_session']) && !$config['herman_start_session']){
-	//do nothing... Config says to not start the session
-}else{
-	//else default to starting the session
-	session_start();
-}
-
 Class HermanAuth {
 	public $db;
 
@@ -19,6 +12,13 @@ Class HermanAuth {
 		global $config;
 		$db = new MysqliDb ($config['db_host'], $config['db_username'], $config['db_password'], $config['db_database']);
 		$this->db = $db;
+
+		if(isset($config['herman_start_session']) && $config['herman_start_session'] == false){
+			//do nothing... Config says to not start the session
+		}else{
+			//else default to starting the session
+			session_start();
+		}
 	}
 
 	public function validateUser($email){
