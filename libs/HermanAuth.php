@@ -260,9 +260,6 @@ Class HermanAuth {
 		}
 
 		$this->validateUser($userData['email']);
-
-		session_write_close();
-		die();
 	}
 
 	public function adminOnly(){
