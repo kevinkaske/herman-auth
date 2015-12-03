@@ -235,11 +235,11 @@ Class HermanAuth {
 
 	public function logInWithToken(){
 		$current_token = '';
-		if(isset($_POST['token']){
+		if(isset($_POST['token'])){
 			$current_token = $_POST['token'];
 		}
 
-		if(isset($query_string['token']){
+		if(isset($query_string['token'])){
 			$current_token = $query_string['token'];
 		}
 
