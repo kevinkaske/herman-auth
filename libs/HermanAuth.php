@@ -7,6 +7,7 @@
 //-----------------------------------------------------------------------------------
 Class HermanAuth {
 	public $db;
+	private $tokenAuthEnabled;
 
 	public function __construct(){
 		global $config;
@@ -14,12 +15,18 @@ Class HermanAuth {
 		$db = new MysqliDb ($config['db_host'], $config['db_username'], $config['db_password'], $config['db_database']);
 		$this->db = $db;
 
+		$this->$tokenAuthEnabled = false;
+
 		if(isset($config['herman_start_session']) && $config['herman_start_session'] == false){
 			//do nothing... Config says to not start the session
 		}else{
 			//else default to starting the session
 			session_start();
 		}
+	}
+
+	public function enableTokenAuth(){
+		$this->$tokenAuthEnabled = true;
 	}
 
 	public function validateUser($email){
@@ -213,13 +220,49 @@ Class HermanAuth {
 	}
 
 	public function membersOnly(){
-		global $config;
+		global $config, $query_string;
 		if(!$this->isLoggedIn()){
-			header('Location: '.$config['address'].'/login');
-			die();
+			if($this->$tokenAuthEnabled && (isset($_POST['token']) || isset($query_string['token']))){
+				$this->logInWithToken();
+			}else{
+				header('Location: '.$config['address'].'/login');
+				die();
+			}
 		}else{
 			$this->validateUser($_SESSION['email']);
 		}
+	}
+
+	public function logInWithToken(){
+		$current_token = '';
+		if(isset($_POST['token']){
+			$current_token = $_POST['token'];
+		}
+
+		if(isset($query_string['token']){
+			$current_token = $query_string['token'];
+		}
+
+		$this->db->where('token', $current_token);
+		$rows = $this->db->get('users');
+
+		$userData = null;
+
+		if(count($rows) < 1){
+			$this->logInvalidLogin($email);
+
+			echo '{ "error": "Incorrect token" }';
+			session_write_close();
+
+			die();
+		}else{
+			$userData = $rows[0];
+		}
+
+		$this->validateUser($userData['email']);
+
+		session_write_close();
+		die();
 	}
 
 	public function adminOnly(){
