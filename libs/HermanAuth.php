@@ -10,7 +10,7 @@ Class HermanAuth {
 
 	public function __construct(){
 		global $config;
-		
+
 		$db = new MysqliDb ($config['db_host'], $config['db_username'], $config['db_password'], $config['db_database']);
 		$this->db = $db;
 
@@ -118,7 +118,9 @@ Class HermanAuth {
 				setcookie(session_name(), $_COOKIE[session_name()], time() + 60*60*24*30, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
 			}
 
+			session_write_close();
 			header('Location: '.$config['address']);
+			die();
 		}catch (MyException $e){
 			$this->logInvalidLogin($email);
 
