@@ -15,7 +15,7 @@ Class HermanAuth {
 		$db = new MysqliDb ($config['db_host'], $config['db_username'], $config['db_password'], $config['db_database']);
 		$this->db = $db;
 
-		$this->$tokenAuthEnabled = false;
+		$this->tokenAuthEnabled = false;
 
 		if(isset($config['herman_start_session']) && $config['herman_start_session'] == false){
 			//do nothing... Config says to not start the session
@@ -26,7 +26,7 @@ Class HermanAuth {
 	}
 
 	public function enableTokenAuth(){
-		$this->$tokenAuthEnabled = true;
+		$this->tokenAuthEnabled = true;
 	}
 
 	public function validateUser($email){
@@ -222,7 +222,7 @@ Class HermanAuth {
 	public function membersOnly(){
 		global $config, $query_string;
 		if(!$this->isLoggedIn()){
-			if($this->$tokenAuthEnabled && (isset($_POST['token']) || isset($query_string['token']))){
+			if($this->tokenAuthEnabled && (isset($_POST['token']) || isset($query_string['token']))){
 				$this->logInWithToken();
 			}else{
 				header('Location: '.$config['address'].'/login');
