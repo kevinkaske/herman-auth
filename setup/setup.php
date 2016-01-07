@@ -37,7 +37,7 @@ print getGreenColoredString("		parent::__construct(\$controller, \$action);\n");
 print getGreenColoredString("\n");
 print getGreenColoredString("		\$this->auth = new HermanAuth();\n");
 print getGreenColoredString("\n");
-print getGreenColoredString("		//Require password for everything but login page");
+print getGreenColoredString("		//Require password for everything but login page\n");
 print getGreenColoredString("		if(\$controller != 'sessions'){\n");
 print getGreenColoredString("			\$this->auth->membersOnly();\n");
 print getGreenColoredString("		}\n");
