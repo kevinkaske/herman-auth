@@ -10,7 +10,7 @@ class SessionsController extends ApplicationController{
     }else{
       flash('error', 'Incorrect username or password. Try again.');
       session_write_close();
-      header('Location: '.$this->config['address'].'/login');
+      $this->redirect($this->config['address'].'/login');
     }
 	}
 
