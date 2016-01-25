@@ -5,7 +5,13 @@ class SessionsController extends ApplicationController{
 	}
 
 	function process(){
-		$this->auth->logUserIn($_POST['email'], $_POST['password']);
+    if(isset($_POST['email']) && isset($_POST['password'])){
+      $this->auth->logUserIn($_POST['email'], $_POST['password'], false);
+    }else{
+      flash('error', 'Incorrect username or password. Try again.');
+      session_write_close();
+      header('Location: '.$this->config['address'].'/login');
+    }
 	}
 
 	function logout(){
