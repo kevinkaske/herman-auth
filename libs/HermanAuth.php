@@ -8,6 +8,7 @@
 Class HermanAuth {
 	public $db;
 	private $tokenAuthEnabled;
+	private $accountIdFieldName;
 
 	public function __construct(){
 		global $config;
@@ -16,6 +17,9 @@ Class HermanAuth {
 		$this->db = $db;
 
 		$this->tokenAuthEnabled = false;
+
+		//set account id name to default
+		$this->accountIdFieldName = 'account_id';
 
 		if(isset($config['herman_start_session']) && $config['herman_start_session'] == false){
 			//do nothing... Config says to not start the session
@@ -29,13 +33,20 @@ Class HermanAuth {
 		$this->tokenAuthEnabled = true;
 	}
 
+	public function setAccountIdField($account_id_field_name){
+		//Defaults to account_id. You can pass in an empty string if you
+		//don't want to handle an account_id.
+		$this->accountIdFieldName = $account_id_field_name;
+	}
+
 	public function validateUser($email){
 		session_regenerate_id(); //this is a security measure
 		$_SESSION['valid']   = 1;
 		$_SESSION['user_id'] = "";
-		$_SESSION['account_id'] = "";
-		$_SESSION['control_number'] = "";
 		$_SESSION['email']   = "";
+		if($this->accountIdFieldName != ''){
+			$_SESSION[$this->accountIdFieldName] = "";
+		}
 
 		try{
 			$this->db->where('email', $email);
@@ -48,9 +59,12 @@ Class HermanAuth {
 				die("An error has occurred. Please try again later.");
 			}
 
-			$_SESSION['user_id']        = $userData['id'];
-			$_SESSION['email']          = $userData['email'];
-			$_SESSION['account_id']     = $userData['account_id'];
+			$_SESSION['user_id'] = $userData['id'];
+			$_SESSION['email']   = $userData['email'];
+
+			if($this->accountIdFieldName != ''){
+				$_SESSION[$this->accountIdFieldName] = $userData[$this->accountIdFieldName];
+			}
 
 			if($userData['admin'] == 1){
 				$_SESSION['admin'] = true;
