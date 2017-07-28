@@ -134,10 +134,24 @@ Class HermanAuth {
 
 			$this->validateUser($userData['email']);
 
+			//Set "Remember Me" cookie
 			if($remember){
-				$params = session_get_cookie_params();
-				setcookie(session_name(), $_COOKIE[session_name()], time() + 60*60*24*30, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
-				$_SESSION['remember'] = 'yes';
+				//Insert selector and validator into db
+				$selector = getToken(12);
+				$validator = getToken(15);
+				$expires = time()+60*60*24*30*12;
+				setcookie('validator', $selector.':'.$validator, $expires);
+				
+				$data = Array ('selector' => $selector,
+												'hashedValidator' => hash('sha256', $validator),
+												'user_id' => $userData['id'],
+												'expires' => $this->db->now('+1Y')
+				);
+
+				$id = $this->db->insert('cookie_tokens', $data);
+				
+				//Get rid of old tokens from db
+				$this->db->rawQuery("delete FROM cookie_tokens WHERE expires < NOW()");
 			}
 
 			session_write_close();
@@ -239,12 +253,53 @@ Class HermanAuth {
 		if(!$this->isLoggedIn()){
 			if($this->tokenAuthEnabled && (isset($_POST['token']) || isset($query_string['token']))){
 				$this->logInWithToken();
+			}elseif(isset($_COOKIE['validator']) && $_COOKIE['validator'] != ''){
+				$this->logInWithCookie();
 			}else{
 				header('Location: '.$config['address'].'/login');
 				die();
 			}
 		}else{
 			$this->validateUser($_SESSION['email']);
+		}
+	}
+
+	public function logInWithCookie(){
+		//Based on https://paragonie.com/blog/2015/04/secure-authentication-php-with-long-term-persistence#title.2
+		
+		//1. Separate selector from validator
+		$validator_array = explode(':', $_COOKIE['validator']);
+		if(count($validator_array) < 2){
+			header('Location: '.$config['address'].'/login');
+			die();
+		}
+		
+		//2. Grab the row in auth_tokens for the given selector. If none is found, abort.
+		$this->db->where('selector', $validator_array[0]);
+		$rows = $this->db->get('cookie_tokens');
+		
+		if(count($rows) < 1){
+			header('Location: '.$config['address'].'/login');
+			die();
+		}
+		
+		//3. Hash the validator provided by the user's cookie with SHA-256.
+		$cookie_hashed_validator = hash('sha256', $validator_array[0]);
+		
+		//4. Compare the SHA-256 hash we generated with the hash stored in the database, using hash_equals()
+		if(hash_equals($rows[0]['validator'], $cookie_hashed_validator)){
+			//5. If step 4 passes, associate the current session with the appropriate user ID.
+			$this->db->where('id', $rows[0]['user_id']);
+			$userData = $this->db->getOne('users');
+			
+			$this->validateUser($userData['email']);
+			
+			session_write_close();
+			header('Location: '.$config['address']);
+			die();
+		}else{
+			header('Location: '.$config['address'].'/login');
+			die();
 		}
 	}
 

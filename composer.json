@@ -9,7 +9,8 @@
 		}
 	],
 	"require": {
-		"kevinkaske/pooch": "dev-master"
+		"kevinkaske/pooch": "dev-master",
+		"kevinkaske/random-token": "dev-master"
 	},
 	"autoload": {
 		"files": [
