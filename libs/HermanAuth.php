@@ -203,6 +203,8 @@ Class HermanAuth {
 
 	//This is used for impersonating a user for support reasons
 	public function logUserInWithoutPassword($email){
+		global $config;
+		
 		$params = array($email);
 		$rows = $this->db->rawQuery("SELECT password, salt, email, is_admin, approved, agreed_to_terms FROM users WHERE email = ?", $params);
 
