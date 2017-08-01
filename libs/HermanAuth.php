@@ -140,8 +140,10 @@ Class HermanAuth {
 				$selector = getToken(12);
 				$validator = getToken(15);
 				$expires = time()+60*60*24*30*12;
-				setcookie('validator', $selector.':'.$validator, $expires);
-				
+
+				setcookie('validator', $selector.'-'.$validator, $expires, '/');
+
+
 				$data = Array ('selector' => $selector,
 												'hashedValidator' => hash('sha256', $validator),
 												'user_id' => $userData['id'],
@@ -149,7 +151,7 @@ Class HermanAuth {
 				);
 
 				$id = $this->db->insert('cookie_tokens', $data);
-				
+
 				//Get rid of old tokens from db
 				$this->db->rawQuery("delete FROM cookie_tokens WHERE expires < NOW()");
 			}
@@ -265,35 +267,36 @@ Class HermanAuth {
 	}
 
 	public function logInWithCookie(){
+		global $config, $query_string;
 		//Based on https://paragonie.com/blog/2015/04/secure-authentication-php-with-long-term-persistence#title.2
-		
+
 		//1. Separate selector from validator
-		$validator_array = explode(':', $_COOKIE['validator']);
+		$validator_array = explode('-', $_COOKIE['validator']);
 		if(count($validator_array) < 2){
 			header('Location: '.$config['address'].'/login');
 			die();
 		}
-		
+
 		//2. Grab the row in auth_tokens for the given selector. If none is found, abort.
 		$this->db->where('selector', $validator_array[0]);
-		$rows = $this->db->get('cookie_tokens');
-		
-		if(count($rows) < 1){
+		$cookieToken = $this->db->getOne('cookie_tokens');
+
+		if(!$cookieToken){
 			header('Location: '.$config['address'].'/login');
 			die();
 		}
-		
+
 		//3. Hash the validator provided by the user's cookie with SHA-256.
-		$cookie_hashed_validator = hash('sha256', $validator_array[0]);
-		
+		$cookie_hashed_validator = hash('sha256', $validator_array[1]);
+
 		//4. Compare the SHA-256 hash we generated with the hash stored in the database, using hash_equals()
-		if(hash_equals($rows[0]['validator'], $cookie_hashed_validator)){
+		if(hash_equals($cookieToken['hashedValidator'], $cookie_hashed_validator)){
 			//5. If step 4 passes, associate the current session with the appropriate user ID.
-			$this->db->where('id', $rows[0]['user_id']);
+			$this->db->where('id', $cookieToken['user_id']);
 			$userData = $this->db->getOne('users');
-			
+
 			$this->validateUser($userData['email']);
-			
+
 			session_write_close();
 			header('Location: '.$config['address']);
 			die();
@@ -347,6 +350,21 @@ Class HermanAuth {
 			die();
 		}else{
 			$this->validateUser($_SESSION['email']);
+		}
+	}
+}
+
+//Polyfill for versions of php that are older than 5.6. Should be able to remove some day!
+//Copied from http://php.net/manual/en/function.hash-equals.php#115635
+if(!function_exists('hash_equals')) {
+	function hash_equals($str1, $str2) {
+		if(strlen($str1) != strlen($str2)) {
+			return false;
+		} else {
+			$res = $str1 ^ $str2;
+			$ret = 0;
+			for($i = strlen($res) - 1; $i >= 0; $i--) $ret |= ord($res[$i]);
+			return !$ret;
 		}
 	}
 }
