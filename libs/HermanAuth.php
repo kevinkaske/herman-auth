@@ -153,7 +153,7 @@ Class HermanAuth {
 				$id = $this->db->insert('cookie_tokens', $data);
 
 				//Get rid of old tokens from db
-				$this->db->rawQuery("delete FROM cookie_tokens WHERE expires < NOW()");
+				$this->db->rawQuery("DELETE FROM cookie_tokens WHERE expires < NOW()");
 			}
 
 			session_write_close();
@@ -248,6 +248,14 @@ Class HermanAuth {
 	}
 
 	public function logout(){
+		if(isset($_COOKIE['validator'])){
+			$validator_array = explode('-', $_COOKIE['validator']);
+			if(count($validator_array) > 1){
+				$this->db->rawQuery("DELETE FROM cookie_tokens WHERE selector = ?", array($validator_array[0]));
+			}
+			
+			setcookie('validator', '', time()-3600);
+		}
 		$_SESSION = array(); //destroy all of the session variables
 		session_destroy();
 	}
