@@ -8,6 +8,10 @@
 Class HermanAuth {
 	public $db;
 	private $tokenAuthEnabled;
+	private $newUsersAgreeToTermsEnabled;
+	private $newUsersTermsPage;
+	private $newUsersNeedAprovalEnabled;
+	private $startSessions;
 	private $accountIdFieldName;
 
 	public function __construct(){
@@ -16,29 +20,66 @@ Class HermanAuth {
 		$db = new MysqliDb ($config['db_host'], $config['db_username'], $config['db_password'], $config['db_database']);
 		$this->db = $db;
 
-		$this->tokenAuthEnabled = false;
-
-		//set account id name to default
-		$this->accountIdFieldName = 'account_id';
-
+		//-----------------------------------------
+		// Plugin Options
+		//-----------------------------------------
+		$this->tokenAuthEnabled            = false;
+		$this->newUsersAgreeToTermsEnabled = false;
+		$this->newUsersTermsPage           = '';
+		$this->newUsersNeedAprovalEnabled  = false;
+		$this->accountIdFieldName          = 'account_id';
+		
+		//-----------------------------------------
+		//Set Plugin Options From Pooch Config File
+		//-----------------------------------------
 		if(isset($config['herman_start_session']) && $config['herman_start_session'] == false){
 			//do nothing... Config says to not start the session
 		}else{
 			//else default to starting the session
 			session_start();
 		}
+		
+		if(isset($config['herman_new_users_agree_to_terms']) && $config['herman_new_users_agree_to_terms'] == true){
+			$this->newUsersAgreeToTermsEnabled = true;
+		}
+		
+		if(isset($config['herman_new_users_terms_page'])){
+			$this->newUsersTermsPage = $config['herman_new_users_terms_page'];
+		}else{
+			$this->newUsersTermsPage = '/terms';
+		}
+		
+		if(isset($config['herman_new_users_approval']) && $config['herman_new_users_approval'] == true){
+			$this->newUsersNeedAprovalEnabled = true;
+		}
 	}
 
+	//-----------------------------------------
+	//Functions for Setting Plugin Options
+	//-----------------------------------------
 	public function enableTokenAuth(){
 		$this->tokenAuthEnabled = true;
 	}
-
+	
+	public function enableNewUsersAgreeToTerms(){
+		$this->newUsersAgreeToTermsEnabled = true;
+	}
+	
+	public function setNewUsersTermsPage($terms_page){
+		$this->newUsersTermsPage = $terms_page;
+	}
+	
+	public function enableNewUsersApproval(){
+		$this->newUsersNeedAprovalEnabled = true;
+	}
+	
 	public function setAccountIdField($account_id_field_name){
 		//Defaults to account_id. You can pass in an empty string if you
 		//don't want to handle an account_id.
 		$this->accountIdFieldName = $account_id_field_name;
 	}
-
+	//-----------------------------------------
+	
 	public function validateUser($email){
 		session_regenerate_id(); //this is a security measure
 		$_SESSION['valid']   = 1;
@@ -77,30 +118,6 @@ Class HermanAuth {
 		}
 	}
 
-	public function isLoggedIn(){
-		if(isset($_SESSION['valid'])){
-			return true;
-		}else{
-			return false;
-		}
-	}
-
-	public function isAdmin(){
-		if(isset($_SESSION['admin']) && $_SESSION['admin'] == true){
-			return true;
-		}else{
-			return false;
-		}
-	}
-
-	public function isMaster(){
-		if(isset($_SESSION['is_master']) && $_SESSION['is_master'] == true){
-			return true;
-		}else{
-			return false;
-		}
-	}
-
 	public function logUserIn($email, $password, $remember=false){
 		global $config;
 
@@ -132,6 +149,26 @@ Class HermanAuth {
 				die();
 			}
 
+			if($this->newUsersNeedAprovalEnabled && $userData['approved'] != true){
+				
+				if($this->newUsersAgreeToTermsEnabled && $userData['agreed_to_terms'] != true){
+					flash('error', 'You will receive an email letting you know when your account has been approved.');
+				}else{
+					flash('error', 'Account has been disabled by admin. Please contact your sites admin for more information.');
+				}
+				session_write_close();
+
+				header('Location: '.$config['address'].'/login');
+				die();
+			}
+
+			if($this->newUsersAgreeToTermsEnabled && $userData['agreed_to_terms'] != true){
+				header('Location: '.$config['address'].$this->newUsersTermsPage);
+				die();
+			}else{
+				header('Location: '.$config['address']);
+			}
+
 			$this->validateUser($userData['email']);
 
 			//Set "Remember Me" cookie
@@ -157,7 +194,7 @@ Class HermanAuth {
 			}
 
 			session_write_close();
-			header('Location: '.$config['address']);
+			
 			die();
 		}catch (MyException $e){
 			$this->logInvalidLogin($email);
@@ -173,7 +210,7 @@ Class HermanAuth {
 
 
 	//--------------------------------------------
-	// This is a bruteforce prevention mechanism
+	// Bruteforce prevention mechanism
 	//--------------------------------------------
 	public function logInvalidLogin($email){
 		$params = array($email);
@@ -202,49 +239,11 @@ Class HermanAuth {
 	}
 
 	//This is used for impersonating a user for support reasons
+	//be extreamly careful to protect parts of the site you might
+	//call this code from!
 	public function logUserInWithoutPassword($email){
-		global $config;
-		
-		$params = array($email);
-		$rows = $this->db->rawQuery("SELECT password, salt, email, is_admin, approved, agreed_to_terms FROM users WHERE email = ?", $params);
-
-		try{
-			$userData = $rows[0];
-
-			if(!$userData){
-				$this->logInvalidLogin($email);
-
-				flash('error', 'Incorrect username or password.');
-				session_write_close();
-
-				header('Location: '.$config['address'].'/login');
-				die();
-			}else{
-				if($userData['approved'] != true){
-					if($userData['agreed_to_terms'] != true){
-						flash('error', 'You will receive an email letting you know when your account has been approved.');
-					}else{
-						flash('error', 'Account has been disabled by admin. Please contact your sites admin for more information.');
-					}
-					session_write_close();
-
-					header('Location: '.$config['address'].'/login');
-					die();
-				}
-			}
-			$this->validateUser($userData['email']);
-			if($userData['agreed_to_terms'] != true){
-				header('Location: '.$config['address'].'/terms');
-				die();
-			}
-			$this->loadHome();
-		}catch (MyException $e){
-			flash('error', 'An error has occurred. Please try again later.');
-			session_write_close();
-
-			header('Location: '.$config['address'].'/login');
-			die();
-		}
+		$this->validateUser($email);
+		$this->loadHome();
 	}
 
 	public function logout(){
