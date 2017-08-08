@@ -361,6 +361,14 @@ Class HermanAuth {
 			$this->validateUser($_SESSION['email']);
 		}
 	}
+	
+	public function isLoggedIn(){
+		if(isset($_SESSION['valid'])){
+			return true;
+		}else{
+			return false;
+		}
+	}
 }
 
 //Polyfill for versions of php that are older than 5.6. Should be able to remove some day!
