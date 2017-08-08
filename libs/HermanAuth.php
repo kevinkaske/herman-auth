@@ -166,7 +166,11 @@ Class HermanAuth {
 				header('Location: '.$config['address'].$this->newUsersTermsPage);
 				die();
 			}else{
-				header('Location: '.$config['address']);
+				if(isset($_SERVER['REQUEST_URI'])){
+					header('Location: '.$config['address'].$_SERVER['REQUEST_URI']);
+				}else{
+					header('Location: '.$config['address']);
+				}
 			}
 
 			$this->validateUser($userData['email']);
@@ -307,7 +311,11 @@ Class HermanAuth {
 			$this->validateUser($userData['email']);
 
 			session_write_close();
-			header('Location: '.$config['address']);
+			if(isset($_SERVER['REQUEST_URI'])){
+				header('Location: '.$config['address'].$_SERVER['REQUEST_URI']);
+			}else{
+				header('Location: '.$config['address']);
+			}
 			die();
 		}else{
 			header('Location: '.$config['address'].'/login');
