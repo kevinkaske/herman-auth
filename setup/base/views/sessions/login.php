@@ -1,5 +1,5 @@
 <form class="form account-form" method="POST" action="<?= getPath('sessions/process'); ?>">
-	<?= $this->auth->getCSRFMeta(); ?>
+	<?= $view_data['csrf_meta'] ?>
 	<div class="form-group">
 		<label for="login-username" class="placeholder-hidden">Email</label>
 		<input type="text" class="form-control" id="login-username" placeholder="Email" name="email" tabindex="1">

@@ -97,7 +97,7 @@ Class HermanAuth {
 	public function getCSRFMeta(){
 		$csrfOneTimePad = getToken($this->csrfProtectionLength);
 		$_SESSION['csrf_token'] = getToken($this->csrfProtectionLength);
-		$csrfXOR = cipher($_SESSION['csrf_token'], $csrfOneTimePad);
+		$csrfXOR = $this->cipher($_SESSION['csrf_token'], $csrfOneTimePad);
 		
 		$masked_token = $csrfOneTimePad.$csrfXOR;
 		return '<input type="hidden" name="csrf" value="'.base64_encode($masked_token).'">';

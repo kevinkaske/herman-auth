@@ -2,6 +2,10 @@
 class SessionsController extends ApplicationController{
 	function login(){
 		//Show Login Page
+		$values = array();
+		$values['csrf_meta'] = $this->auth->getCSRFMeta();
+
+		$this->values = $values;
 	}
 
 	function process(){
