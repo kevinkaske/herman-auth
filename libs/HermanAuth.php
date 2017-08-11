@@ -13,6 +13,8 @@ Class HermanAuth {
 	private $newUsersNeedAprovalEnabled;
 	private $startSessions;
 	private $accountIdFieldName;
+	private $csrfProtection;
+	private $csrfProtectionLength;
 
 	public function __construct(){
 		global $config;
@@ -27,6 +29,8 @@ Class HermanAuth {
 		$this->newUsersAgreeToTermsEnabled = false;
 		$this->newUsersTermsPage           = '';
 		$this->newUsersNeedAprovalEnabled  = false;
+		$this->csrfProtection              = true;
+		$this->csrfProtectionLength        = 20;
 		$this->accountIdFieldName          = 'account_id';
 		
 		//-----------------------------------------
@@ -51,6 +55,10 @@ Class HermanAuth {
 		
 		if(isset($config['herman_new_users_approval']) && $config['herman_new_users_approval'] == true){
 			$this->newUsersNeedAprovalEnabled = true;
+		}
+		
+		if(isset($config['herman_csrf_protection']) && $config['herman_csrf_protection'] == false){
+			$this->csrfProtection = false;
 		}
 	}
 
@@ -78,7 +86,22 @@ Class HermanAuth {
 		//don't want to handle an account_id.
 		$this->accountIdFieldName = $account_id_field_name;
 	}
+	
+	public function disableCSRFProtection(){
+		$this->csrfProtection = false;
+	}
 	//-----------------------------------------
+	
+	//CSRF based on Rails implimentation
+	//https://medium.com/@mctaylorpants/a-deep-dive-into-csrf-protection-in-rails-19fa0a42c0ef
+	public function getCSRFMeta(){
+		$csrfOneTimePad = getToken($this->csrfProtectionLength);
+		$_SESSION['csrf_token'] = getToken($this->csrfProtectionLength);
+		$csrfXOR = cipher($_SESSION['csrf_token'], $csrfOneTimePad);
+		
+		$masked_token = $csrfOneTimePad.$csrfXOR;
+		return '<input type="hidden" name="csrf" value="'.base64_encode($masked_token).'">';
+	}
 	
 	public function validateUser($email){
 		session_regenerate_id(); //this is a security measure
@@ -118,8 +141,57 @@ Class HermanAuth {
 		}
 	}
 
-	public function logUserIn($email, $password, $remember=false){
+	public function checkCSRFToken($csrf_base64_token){
+		if($csrf_base64_token == null || !isset($_SESSION['csrf_token']) || $_SESSION['csrf_token'] = ''){
+			flash('error', 'An error has occurred. Try again.');
+			session_write_close();
+			header('Location: '.$config['address'].'/login');
+			die();
+		}
+		
+		$masked_token = base64_decode($csrf_base64_token);
+		$unmasked_token = '';
+		
+		if(strlen($masked_token) == $this->csrfProtectionLength){
+			$unmasked_token = $masked_token;
+		}elseif(strlen($masked_token) == $this->csrfProtectionLength){
+			$unmasked_token = $this->unmaskCSRFToken($masked_token);
+		}else{
+			//Token is malformed
+			flash('error', 'An error has occurred. Try again.');
+			session_write_close();
+			header('Location: '.$config['address'].'/login');
+			die();
+		}
+		
+		//validate csrf token here
+		if($_SESSION['csrf_token'] == $unmasked_token){
+			//Token is valid now let's empty it so that it cannot be reused
+			$_SESSION['csrf_token'] = '';
+		}else{
+			//Token is not valid so we ned to empty it and redirect
+			$_SESSION['csrf_token'] = '';
+			
+			flash('error', 'An error has occurred. Try again.');
+			session_write_close();
+			header('Location: '.$config['address'].'/login');
+			die();
+		}
+	}
+	
+	private function unmaskCSRFToken($masked_token){
+		$one_time_pad = substr($masked_token , 0, $this->csrfProtectionLength);
+		$encrypted_csrf_token = substr($masked_token , $this->csrfProtectionLength);
+		return plaintext($encrypted_csrf_token, $one_time_pad);
+	}
+
+	public function logUserIn($email, $password, $remember=false, $csrf_base64_token=null){
 		global $config;
+
+		
+		if($this->csrfProtection){
+			$this->checkCSRFToken($csrf_base64_token);
+		}
 
 		try{
 			$this->db->where('email', $email);
@@ -376,6 +448,42 @@ Class HermanAuth {
 		}else{
 			return false;
 		}
+	}
+	
+	//Utility cipher functions for csrf
+	private function cipher($plaintext, $key) {
+		$key = $this->text2ascii($key);
+		$plaintext = $this->text2ascii($plaintext);
+
+		$keysize = count($key);
+		$input_size = count($plaintext);
+
+		$cipher = "";
+		
+		for ($i = 0; $i < $input_size; $i++)
+			$cipher .= chr($plaintext[$i] ^ $key[$i % $keysize]);
+
+		return $cipher;
+	}
+
+	private function plaintext($cipher, $key) {
+		$key = $this->text2ascii($key);
+		$cipher = $this->text2ascii($cipher);
+		$keysize = count($key);
+		$input_size = count($cipher);
+		$plaintext = "";
+		
+		for ($i = 0; $i < $input_size; $i++)
+			$plaintext .= chr($cipher[$i] ^ $key[$i % $keysize]);
+
+		return $plaintext;
+	}
+	
+	private function ascii2text($ascii) {
+		$text = "";
+		foreach($ascii as $char)
+			$text .= chr($char);
+		return $text;
 	}
 }
 
