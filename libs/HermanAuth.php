@@ -143,12 +143,12 @@ Class HermanAuth {
 
 	public function checkCSRFToken($csrf_base64_token){
 		if($csrf_base64_token == null || !isset($_SESSION['csrf_token']) || $_SESSION['csrf_token'] = ''){
+			$_SESSION['csrf_token'] = '';
 			flash('error', 'An error has occurred. Try again.');
 			session_write_close();
 			header('Location: '.$config['address'].'/login');
 			die();
 		}
-		
 		$masked_token = base64_decode($csrf_base64_token);
 		$unmasked_token = '';
 		
@@ -158,6 +158,7 @@ Class HermanAuth {
 			$unmasked_token = $this->unmaskCSRFToken($masked_token);
 		}else{
 			//Token is malformed
+			$_SESSION['csrf_token'] = '';
 			flash('error', 'An error has occurred. Try again.');
 			session_write_close();
 			header('Location: '.$config['address'].'/login');
