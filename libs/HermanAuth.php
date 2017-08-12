@@ -480,11 +480,8 @@ Class HermanAuth {
 		return $plaintext;
 	}
 	
-	private function ascii2text($ascii) {
-		$text = "";
-		foreach($ascii as $char)
-			$text .= chr($char);
-		return $text;
+	private function text2ascii($text) {
+		return array_map('ord', str_split($text));
 	}
 }
 
