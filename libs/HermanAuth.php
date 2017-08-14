@@ -142,7 +142,7 @@ Class HermanAuth {
 	}
 
 	public function checkCSRFToken($csrf_base64_token){
-		if($csrf_base64_token == null || !isset($_SESSION['csrf_token']) || $_SESSION['csrf_token'] = ''){
+		if($csrf_base64_token == null || !isset($_SESSION['csrf_token']) || $_SESSION['csrf_token'] == ''){
 			$_SESSION['csrf_token'] = '';
 			flash('error', 'An error has occurred. Try again.');
 			session_write_close();
@@ -154,7 +154,7 @@ Class HermanAuth {
 		
 		if(strlen($masked_token) == $this->csrfProtectionLength){
 			$unmasked_token = $masked_token;
-		}elseif(strlen($masked_token) == $this->csrfProtectionLength){
+		}elseif(strlen($masked_token) == ($this->csrfProtectionLength * 2)){
 			$unmasked_token = $this->unmaskCSRFToken($masked_token);
 		}else{
 			//Token is malformed
@@ -183,7 +183,7 @@ Class HermanAuth {
 	private function unmaskCSRFToken($masked_token){
 		$one_time_pad = substr($masked_token , 0, $this->csrfProtectionLength);
 		$encrypted_csrf_token = substr($masked_token , $this->csrfProtectionLength);
-		return plaintext($encrypted_csrf_token, $one_time_pad);
+		return $this->plaintext($encrypted_csrf_token, $one_time_pad);
 	}
 
 	public function logUserIn($email, $password, $remember=false, $csrf_base64_token=null){
@@ -239,11 +239,7 @@ Class HermanAuth {
 				header('Location: '.$config['address'].$this->newUsersTermsPage);
 				die();
 			}else{
-				if(isset($_SERVER['REQUEST_URI'])){
-					header('Location: '.$config['address'].$_SERVER['REQUEST_URI']);
-				}else{
-					header('Location: '.$config['address']);
-				}
+				header('Location: '.$config['address']);
 			}
 
 			$this->validateUser($userData['email']);
