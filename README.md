@@ -39,7 +39,7 @@ class ApplicationController extends Controller{
 
 		$this->auth = new HermanAuth();
 
-		if($controller != 'login'){
+		if($controller != 'sessions'){
 			$this->auth->membersOnly();
 		}
 
