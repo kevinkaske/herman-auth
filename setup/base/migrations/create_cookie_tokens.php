@@ -10,7 +10,7 @@ class CreateCookieTokens extends AbstractMigration{
 				$sql = $sql.'  `id` integer(11) UNSIGNED NOT NULL AUTO_INCREMENT,';
 				$sql = $sql.'  `selector` char(12),';
 				$sql = $sql.'  `hashedValidator` char(64),';
-				$sql = $sql.'  `user_id` integer(11) UNSIGNED NOT NULL UNSIGNED,';
+				$sql = $sql.'  `user_id` integer(11) UNSIGNED NOT NULL,';
 				$sql = $sql.'  `expires` datetime,';
 				$sql = $sql.'  PRIMARY KEY (`id`)';
 				$sql = $sql.') ENGINE=InnoDB DEFAULT CHARSET=utf8;';
